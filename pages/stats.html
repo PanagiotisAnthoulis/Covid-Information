@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div class="d-flex flex-column">
+      <div class="d-flex mx-auto justify-content-around mt-5 w-50">
+        <div style='color:black'>
+          Από:<br>
+          <input type="date"  name="" id="date_from" />
+        </div>
+        <div style='color:black'>
+          Έως:<Br>
+          <input type="date"  name="" id="date_to" />
+        </div>
+      </div>
+
+      <canvas id="myChart"></canvas>
+
+      <div class="mx-auto" id="not_returned_div">
+        <h4 class='text-center'>
+          Δεν επιστράφηκαν δεδομένα <br/>
+          για τις παρακάτω ημερομηνίες
+        </h4>
+        <h5>
+          <ul id="not_returned"></ul>
+        </h5>
+      </div>
+    </div>
+    <svg id="loading_svg" width="51px" height="50px" viewBox="0 0 51 50">
+      <rect y="0" width="13" height="50" fill="#1fa2ff">
+        <animate
+          attributeName="height"
+          values="50;10;50"
+          begin="0s"
+          dur="1s"
+          repeatCount="indefinite"
+        />
+        <animate
+          attributeName="y"
+          values="0;20;0"
+          begin="0s"
+          dur="1s"
+          repeatCount="indefinite"
+        />
+      </rect>
+
+      <rect x="19" y="0" width="13" height="50" fill="#12d8fa">
+        <animate
+          attributeName="height"
+          values="50;10;50"
+          begin="0.2s"
+          dur="1s"
+          repeatCount="indefinite"
+        />
+        <animate
+          attributeName="y"
+          values="0;20;0"
+          begin="0.2s"
+          dur="1s"
+          repeatCount="indefinite"
+        />
+      </rect>
+
+      <rect x="38" y="0" width="13" height="50" fill="#06ffcb">
+        <animate
+          attributeName="height"
+          values="50;10;50"
+          begin="0.4s"
+          dur="1s"
+          repeatCount="indefinite"
+        />
+        <animate
+          attributeName="y"
+          values="0;20;0"
+          begin="0.4s"
+          dur="1s"
+          repeatCount="indefinite"
+        />
+      </rect>
+    </svg>
+
+    <script>
+      $(document).ready(function () {
+        
+        var from_initial = new Date()
+        
+        var to_initial= new Date()
+      
+        from_initial.setDate(to_initial.getDate()-5)
+        
+        console.log(from_initial)
+        console.log(to_initial)
+
+        from_initial=from_initial.toISOString().substr(0, 10)
+        to_initial=to_initial.toISOString().substr(0, 10)
+
+        $("#date_from").val(from_initial)
+        $("#date_to").val(to_initial)
+
+
+        $(document).ajaxStart(function () {
+          $("#loading_svg").css({ display: "initial", opacity: "1" });
+        });
+
+        $(document).ajaxComplete(function () {
+          $("#loading_svg").css({ opacity: "0" });
+          setTimeout(() => {
+            $("#loading_svg").css({ display: "none" });
+          }, 600);
+        });
+
+        date1 = $("#date_from").val();
+        date2 = $("#date_to").val();
+
+        data = get_dates(date1, date2);
+
+        data_test = data.datasets[0].data;
+
+        const config = {
+          type: "line",
+          data,
+          options: {},
+        };
+
+        var myChart = new Chart(document.getElementById("myChart"), config);
+
+        $("#date_from,#date_to").focusout(function () {
+          date1 = $("#date_from").val();
+          date2 = $("#date_to").val();
+          data = get_dates(date1, date2);
+
+          myChart.data.datasets = data.datasets;
+          myChart.data.labels = data.labels;
+
+          myChart.update();
+        });
+      });
+
+      function get_dates(from, to) {
+        let date1 = new Date(from);
+        let date2 = new Date(to);
+
+        date1.setDate(date1.getDate() + 1);
+        date2.setDate(date2.getDate() + 1);
+        let diffTime = Math.abs(date2 - date1);
+        let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (date1 > date2) {
+          diffDays = 0;
+        }
+
+        let date = date1;
+
+        let counter = 0;
+
+        let labels = [];
+
+        let total_vac = [];
+        let total_a = [];
+        let total_b = [];
+        let not_returned = [];
+        var data_dates = {};
+
+        var temp_total_a = [];
+
+        for (let i = 0; i < diffDays + 1; i++) {
+          let skip = "";
+
+          month = date.getMonth() + 1;
+
+          data_dates = {
+            date_from: date.getFullYear() + "-" + month + "-" + date.getDate(),
+            date_to: date.getFullYear() + "-" + month + "-" + date.getDate(),
+          };
+
+          data_cov = $.parseJSON(
+            $.ajax({
+              url: "https://data.gov.gr/api/v1/query/mdg_emvolio",
+              data: data_dates,
+              dataType: "json",
+              async: false,
+              headers: {
+                Authorization: "Token 908709ee11584095c8bb98112b2f5de3bcd24bcf",
+              },
+
+              success: function (response) {
+                temp_total = 0;
+                temp_a = 0;
+                temp_b = 0;
+
+                response.forEach((region) => {
+                  temp_a += region["totaldose1"];
+                  temp_b += region["totaldose2"];
+                  temp_total += region["totalvaccinations"];
+                });
+
+                if (temp_a != 0) {
+                  total_a.push(temp_a);
+                  total_b.push(temp_b);
+                  total_vac.push(temp_total);
+                }
+              
+              },
+            }).responseText
+          );
+          if (data_cov.length != 0) {
+            
+            labels.push(
+              date.getDate() + "-" + month + "-" + date.getFullYear()
+            );
+          } else {
+            not_returned.push(
+              date.getDate() + "-" + month + "-" + date.getFullYear()
+            );
+          }
+          date.setDate(date.getDate() + 1);
+        }
+        
+        if (not_returned.length == 0) {
+          $("#not_returned_div").css("display", "none");
+        } else {
+          $("#not_returned").empty();
+          $("#not_returned_div").css("display", "initial");
+          not_returned.forEach((element) => {
+            $("#not_returned").append("<li>" + element + "</li>");
+          });
+        }
+        const data = {
+          labels: labels,
+          datasets: [
+            {
+              label: "Σύνολο Εμβολιασμών",
+              backgroundColor: "#3954DB",
+              borderColor: "#4C93F2",
+
+              data: total_vac,
+            },
+            {
+              label: "Εμβόλια Α δόσης",
+              backgroundColor: "#5E7EDB",
+              borderColor: "#74B6F2",
+              data: total_a,
+            },
+            {
+              label: "Εμβόλια Β-δόσης",
+              backgroundColor: "#6F8EE8",
+              borderColor: "#A8C6DC",
+              data: total_b,
+            },
+          ],
+        };
+
+        /*     const config = {
+        type: 'line',
+        data,
+        options: {}
+        };
+       
+        var myChart = new Chart(
+            document.getElementById('myChart'),config
+        ); */
+
+        return data;
+      }
+    </script>
+  </body>
+</html>

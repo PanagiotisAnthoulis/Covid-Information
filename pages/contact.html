@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div class='mx-auto mt-5' id="contact_wrapper">
+        <div class='d-flex p-3' id="contact_form">
+            <div class="mx-auto d-flex flex-column">
+                <div class='d-flex flex-column align-items-center mb-4'> 
+                    <div>
+                        <div class='contact_label'>Ονοματεπώνυμο</div> <input class='contact_input' type="text">
+                    </div>
+                    <div>
+                       <div class='contact_label'>Ε-mail</div> <input class='contact_input' type="text">
+                    </div>
+                    <div>
+                       <div class='contact_label'>Τηλέφωνο</div> <input class='contact_input' type="text">
+                    </div>
+               
+                </div>
+                
+                <div class='d-flex  flex-column' id='contact_message'>
+                    <textarea class='contact_input' placeholder="Πληκτρολογείστε το μήνυμά σας εδώ." name="" id="" cols="50" rows="10"></textarea>
+                </div>
+     
+                <button  onclick="change_opacity(contact_form,0);setTimeout(()=>{change_opacity(message_send,1); contact_form.style.display='none'},600)"  class='d-block w-50 mx-auto mt-3' id="submit_message" disabled>Αποστολή</button>
+              
+            </div>  
+        </div>
+        <div  id='message_send'>Το μήνυμα εστάλη επιτυχώς.</div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+
+            $('.contact_input').change(function () {
+            var  check=true 
+            $('.contact_input').each(function () {
+                
+                if($(this).val()==''){
+                   check=false     
+                }
+            }
+            )
+            if(check)
+            {
+                console.log('123')
+                $('#submit_message').removeAttr('disabled')
+            }
+            });
+        });
+    </script>
+</body>
+</html>

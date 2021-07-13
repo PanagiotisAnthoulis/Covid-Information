@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+    </head>
+    <body>
+        <div id="black_back"
+            onclick='disappear_opacity(document.getElementById(" black_back"
+            ));disappear_opacity(document.getElementById(" date_display_wrapper"
+            ))'></div>
+
+        <div class='mx-auto' id="booking_wrapper">
+            <div class='d-flex flex-column mx-auto' id="booking_form">
+                <h4>Συπληρώστε τα στοιχεία σας</h4>
+                
+                <div class='d-flex'>
+                    <div class='flex-grow-1 form_label'>Όνομα</div>
+                    <div><input class='form_input' type="text"></div>
+                </div>
+
+                <div class='d-flex'>
+                    <div class='flex-grow-1 form_label'>Επώνυμο</div>
+                    <div><input class='form_input' type="text"></div>
+                </div>
+
+                <div class='d-flex'>
+                    <div class='flex-grow-1 form_label'>Τηλέφωνο</div>
+                    <div><input class='form_input' type="text"></div>
+                </div>
+
+                <div class='d-flex'>
+                    <div class='flex-grow-1 form_label'>E-mail</div>
+                    <div><input class='form_input' type="text"></div>
+                </div>
+
+                <div class='d-flex'>
+                    <div class='flex-grow-1 form_label'>Φύλο</div>
+                   
+                        <select class='flex-grow-1 form_input' name="" id="">
+                            <option value=""></option>
+                            <option value="Άνδρας">Άνδρας</option>
+                            <option value="Γυναίκα">Γυναίκα</option>
+                            <option value="Άλλο">Άλλο</option>
+                        </select>
+          
+                </div>
+
+                <div class='d-flex'>
+                    <div class='flex-grow-1 form_label'>AMKA</div>
+                    <div><input class='form_input' type="text"></div>
+                </div>
+
+                <button class='date_buttons mt-3' id='book_date_button'
+                    onclick="disable(booking_form);randomDate();move(document.getElementById('date_form'),0,'50%');disable(this)">Επόμενο</button>
+
+            </div>
+
+            <div class='mx-auto' id='date_form'>
+
+                <div class='potision-relative d-flex flex-column'>
+                    <!--SUGGESTED DATE-->
+
+                    <div id='date_1'>
+
+                        <div>
+                            <h3>Προτεινόμενη ημερομηνία.</h3>
+                        </div>
+
+                        <div class='d-flex justify-content-around'
+                            id='date_display'>
+                            <div id="date"></div>
+                            <div id="time"></div>
+                        </div>
+
+                        <div>
+                            Πατήστε <button onclick='disable(submit_booking);setTimeout(()=>change_opacity(document.getElementById("date_2"),1),600);change_opacity(document.getElementById("date_1"),0)'
+                                class='no_back border-0 date_buttons'>εδώ</button>
+                            για να επιλέξετε ημερομηνία και ώρα.
+                        </div>
+
+                    </div>
+
+                    <!--USER CHOOSES DATE-->
+
+                    <div id='date_2'>
+                        <h5>
+                            Επιλέξτε ημερομηνία και ώρα (9:00-21:00). <input  type="datetime-local" name=""
+                                id="date_input">
+                        </h5>
+
+                    </div>
+
+                    <button class='date_buttons align-self-center' id='submit_booking'>Αποστολή</button>
+
+                </div>
+            </div>
+        </div>
+        <svg id='loading_svg' width="51px" height="50px" viewBox="0 0 51 50">
+            <rect y="0" width="13" height="50" fill="#1fa2ff">
+                <animate attributeName="height" values="50;10;50" begin="0s"
+                    dur="1s" repeatCount="indefinite" />
+                    <animate attributeName="y" values="0;20;0" begin="0s"
+                        dur="1s" repeatCount="indefinite" />
+                    </rect>
+
+                    <rect x="19" y="0" width="13" height="50" fill="#12d8fa">
+                        <animate attributeName="height" values="50;10;50"
+                            begin="0.2s" dur="1s" repeatCount="indefinite" />
+                            <animate attributeName="y" values="0;20;0"
+                                begin="0.2s" dur="1s" repeatCount="indefinite"
+                                />
+                            </rect>
+
+                            <rect x="38" y="0" width="13" height="50"
+                                fill="#06ffcb">
+                                <animate attributeName="height"
+                                    values="50;10;50" begin="0.4s" dur="1s"
+                                    repeatCount="indefinite" />
+                                    <animate attributeName="y" values="0;20;0"
+                                        begin="0.4s" dur="1s"
+                                        repeatCount="indefinite" />
+                                    </rect>
+
+                                </svg>
+                                <div id="alert1">
+                                    Το ραντεβού καταχωρήθηκε επιτυχώς.
+                                </div>
+                                <div id="alert2">
+                                    Το αίτημα σας απορρίφθηκε.
+                                </div>
+                                <div id="alert3">
+                                    Κάτι πήγε στραβά...
+                                </div>
+
+                                <script>
+        
+$(document).ready(function () {
+    $(document).ajaxStart(function(){
+        $('#loading_svg').css({'display':'initial',"opacity":'1'})
+        ;});
+    $(document).ajaxComplete(function(){
+        $('#loading_svg').css({"opacity":'0'})
+        setTimeout(()=>{
+            $('#loading_svg').css({"display":'none'})
+        },600)
+    })
+    $('#submit_booking').click( function () {
+        $('#booking_wrapper').css('opacity','0')
+        $.ajax({
+            url: "https://us-central1-unipi-aps.cloudfunctions.net/emvolioDate",
+            type: "Post",
+            dataType: "json",
+            statusCode:{
+            200:function(){
+                booking_alert(1)
+            },
+            400:function(){
+                booking_alert(2)
+            },
+            500:function(){
+                booking_alert(3)
+            }
+            },
+            data:'123'
+        
+        })
+    } )
+    $('.form_input').change(
+        
+        function(){
+            var check=true
+        $('.form_input').each(
+            function(){
+                if($(this).val()=='')
+                {
+                check= false;
+                
+            }
+            }
+            
+            )
+        if(check){
+            $('#book_date_button').prop('disabled',false)
+            $('#book_date_button').css({pointerEvents:"initial",filter :"contrast(100%)"})
+        }
+        }
+    )
+    
+    
+
+
+    $('#date_input').change(function (){
+        var today =new Date() 
+        var date =new Date( $('#date_input').val()) 
+        console.log()
+        if(today<date && date.getHours()>=9 && date.getHours() <=21 ){
+
+            $('#submit_booking').prop('disabled',false)
+            $('#submit_booking').css({pointerEvents:"initial",filter :"contrast(100%)"})
+        }
+        else{
+            $('#submit_booking').prop('disabled',true)
+            $('#submit_booking').css({pointerEvents:"none",filter :"contrast(70%)"})
+        }
+       
+     
+    }
+    )
+})
+    </script>
+                            </body>
+                        </html>
